@@ -1,5 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Räuber & Gendarm</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body { font-family: Arial; background:#f4f4f4; text-align:center; margin:0; }
+table { width:90%; margin:auto; border-collapse:collapse; }
+th,td { padding:10px; border:1px solid #ccc; }
+.polizist { background:#cce4ff; }
+.raeuber { background:#ffcccc; }
+button { padding:10px; font-size:16px; margin:5px; }
+#popup { background:#fff; padding:15px; border:1px solid #888; }
+</style>
+</head>
+
+<body>
+
+<h2>Räuber & Gendarm</h2>
+<button onclick="showLogin()">Login</button>
+
+<div id="popup"></div>
+<div id="adminPanel"></div>
+<div id="policePanel"></div>
+<div id="timer"></div>
+<div id="players"></div>
+
 <script>
+// ================= SUPABASE =================
 const SUPABASE_URL = "https://xkmdridnlolhrzkteeut.supabase.co";
 const SUPABASE_KEY = "sb_publishable_oYAAIXgxMtYWiywlVwBvEA_7enZAqdb";
 
@@ -7,5 +38,164 @@ const supabase = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
+
+// ================= SPIEL =================
+let role = "raeuber";
+let gameState = {
+  timerStart: null,
+  players: []
+};
+
+const ADMIN_PASS = "1234";
+const POLICE_WAIT_SECONDS = 300; // 5 Minuten
+
+// ================= STATE =================
+async function loadState() {
+  const { data } = await supabase
+    .from("game_state")
+    .select("state")
+    .eq("id", 1)
+    .single();
+  gameState = data.state;
+}
+
+async function saveState() {
+  await supabase
+    .from("game_state")
+    .update({ state: gameState })
+    .eq("id", 1);
+}
+
+// ================= LOGIN =================
+function showLogin() {
+  popup.innerHTML = `
+    <h3>Login</h3>
+    <select id="r">
+      <option value="admin">Admin</option>
+      <option value="polizist">Polizist</option>
+    </select><br><br>
+    Name (nur Polizist):<br>
+    <input id="n"><br><br>
+    Passwort:<br>
+    <input id="p" type="password"><br><br>
+    <button onclick="login()">Login</button>
+  `;
+}
+
+function login() {
+  if (r.value === "admin" && p.value === ADMIN_PASS) {
+    role = "admin";
+    showAdmin();
+  } else if (r.value === "polizist") {
+    const ok = gameState.players.find(
+      x => x.role === "polizist" && x.name === n.value && x.password === p.value
+    );
+    if (ok) {
+      role = "polizist";
+      showPolice();
+    } else {
+      alert("Login fehlgeschlagen");
+    }
+  }
+}
+
+// ================= ADMIN =================
+function showAdmin() {
+  adminPanel.innerHTML = `
+    <h3>Admin</h3>
+    Name:<br><input id="an"><br>
+    Rolle:<br>
+    <select id="ar">
+      <option value="raeuber">Räuber</option>
+      <option value="polizist">Polizist</option>
+    </select><br>
+    Passwort (nur Polizist):<br>
+    <input id="ap"><br><br>
+    <button onclick="addPlayer()">Spieler hinzufügen</button><br><br>
+    <button onclick="startTimer()">Timer starten</button>
+    <button onclick="resetGame()">Reset</button>
+  `;
+}
+
+async function addPlayer() {
+  gameState.players.push({
+    name: an.value,
+    role: ar.value,
+    caught: false,
+    password: ap.value || ""
+  });
+  await saveState();
+  render();
+}
+
+async function startTimer() {
+  gameState.timerStart = Date.now();
+  await saveState();
+}
+
+async function resetGame() {
+  gameState = { timerStart: null, players: [] };
+  await saveState();
+  render();
+}
+
+// ================= POLIZEI =================
+function showPolice() {
+  policePanel.innerHTML = `<h3>Polizist</h3>`;
+}
+
+function policeAllowed() {
+  if (!gameState.timerStart) return false;
+  return (Date.now() - gameState.timerStart) / 1000 >= POLICE_WAIT_SECONDS;
+}
+
+async function toggleStatus(i) {
+  if (!policeAllowed()) return;
+  gameState.players[i].caught = !gameState.players[i].caught;
+  await saveState();
+  render();
+}
+
+// ================= RENDER =================
+function render() {
+  let html = "<table><tr><th>Name</th><th>Team</th><th>Status</th></tr>";
+  gameState.players.forEach((p,i)=>{
+    html += `<tr class="${p.role}">
+      <td>${p.name}</td>
+      <td>${p.role}</td>
+      <td>`;
+    if (p.role === "raeuber" && role === "polizist" && policeAllowed()) {
+      html += `<button onclick="toggleStatus(${i})">
+        ${p.caught ? "Gefangen" : "Frei"}
+      </button>`;
+    } else {
+      html += p.caught ? "Gefangen" : "Frei";
+    }
+    html += "</td></tr>";
+  });
+  html += "</table>";
+  players.innerHTML = html;
+
+  if (gameState.timerStart) {
+    let left = Math.max(
+      0,
+      POLICE_WAIT_SECONDS - (Date.now() - gameState.timerStart)/1000
+    );
+    timer.innerText = "Polizei Wartezeit: " + Math.floor(left) + "s";
+  }
+}
+
+// ================= START =================
+(async ()=>{
+  await loadState();
+  render();
+  setInterval(async ()=>{
+    await loadState();
+    render();
+  }, 1000);
+})();
 </script>
+
+</body>
+</html>
 
