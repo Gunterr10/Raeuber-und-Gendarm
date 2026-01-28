@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <title>Meine erste Website</title>
-</head>
-<body>
-  <h1>Hallo Welt 👋</h1>
-  <p>Meine Website läuft über GitHub Pages.</p>
-</body>
-</html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://xkmdridnlolhrzkteeut.supabase.co";
+const SUPABASE_KEY = "sb_publishable_oYAAIXgxMtYWiywlVwBvEA_7enZAqdb";
+
+const supabase = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+</script>
+
