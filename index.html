@@ -86,15 +86,13 @@ const POLICE_WAIT_SECONDS = 300; // 5 Minuten
 
 // ================= STATE =================
 async function loadState() {
-  const { data, error } = await supabaseClient
+  const { data } = await supabaseClient
     .from("game_state")
     .select("state")
     .eq("id", 1)
     .single();
 
-  if (!error && data) {
-    gameState = data.state;
-  }
+  if (data) gameState = data.state;
 }
 
 async function saveState() {
@@ -108,6 +106,7 @@ async function saveState() {
 function showLogin() {
   popup.innerHTML = `
     <h3>Login</h3>
+
     Rolle:<br>
     <select id="r">
       <option value="admin">Admin</option>
@@ -125,31 +124,37 @@ function showLogin() {
 }
 
 function login() {
-  popup.innerHTML = "";
-  loginBtn.style.display = "none";
+  const roleVal = r.value;
+  const nameVal = n.value;
+  const passVal = p.value;
 
-  if (r.value === "admin" && p.value === ADMIN_PASS) {
+  // ---- ADMIN ----
+  if (roleVal === "admin" && passVal === ADMIN_PASS) {
     role = "admin";
+    popup.innerHTML = "";
+    loginBtn.style.display = "none";
     showAdmin();
     return;
   }
 
-  if (r.value === "polizist") {
+  // ---- POLIZIST ----
+  if (roleVal === "polizist") {
     const ok = gameState.players.find(
       pl => pl.role === "polizist" &&
-            pl.name === n.value &&
-            pl.password === p.value
+            pl.name === nameVal &&
+            pl.password === passVal
     );
 
     if (ok) {
       role = "polizist";
+      popup.innerHTML = "";
+      loginBtn.style.display = "none";
       showPolice();
       return;
     }
   }
 
   alert("Login fehlgeschlagen");
-  loginBtn.style.display = "block";
 }
 
 // ================= ADMIN =================
@@ -214,7 +219,6 @@ function policeAllowed() {
 
 async function toggleStatus(i) {
   if (!policeAllowed()) return;
-
   gameState.players[i].caught = !gameState.players[i].caught;
   await saveState();
   render();
@@ -226,18 +230,18 @@ function render() {
   if (!gameState.timerStart) {
     timer.innerText = "Polizei Wartezeit: noch nicht gestartet";
   } else {
-    let left = Math.max(
-      0,
-      POLICE_WAIT_SECONDS - (Date.now() - gameState.timerStart) / 1000
-    );
+    const left =
+      POLICE_WAIT_SECONDS -
+      Math.floor((Date.now() - gameState.timerStart) / 1000);
     timer.innerText =
-      "Polizei Wartezeit: " + Math.floor(left) + " Sekunden";
+      "Polizei Wartezeit: " + Math.max(left, 0) + " Sekunden";
   }
 
   // Spieler
-  let html = "<table><tr><th>Name</th><th>Team</th><th>Status</th></tr>";
+  let html =
+    "<table><tr><th>Name</th><th>Team</th><th>Status</th></tr>";
 
-  gameState.players.forEach((p,i)=>{
+  gameState.players.forEach((p, i) => {
     html += `<tr class="${p.role}">
       <td>${p.name}</td>
       <td>${p.role}</td>
