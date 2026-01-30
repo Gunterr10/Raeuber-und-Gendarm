@@ -2,325 +2,266 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Räuber & Gendarm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Räuber und Gendarm</title>
 
 <style>
-* { box-sizing: border-box; }
-
-:root {
-  --blue:#2563eb;
-  --red:#ef4444;
-  --green:#22c55e;
-  --gray:#f3f4f6;
-  --dark:#111827;
-}
-
 body {
-  font-family: system-ui, Arial, sans-serif;
-  background:var(--gray);
-  margin:0;
-  color:var(--dark);
+  font-family: Arial, sans-serif;
+  background: #f2f4f8;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
 
 header {
-  background:linear-gradient(90deg,var(--blue),#3b82f6);
-  color:white;
-  padding:16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  background: #2b6cb0;
+  color: white;
+  padding: 15px;
+  font-size: 22px;
 }
 
-h1 { margin:0; font-size:22px; }
-
-button {
-  padding:10px 14px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
+#loginBtn, #logoutBtn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
-button.primary { background:white; color:var(--blue); }
-button.success { background:var(--green); color:white; }
-button.danger { background:var(--red); color:white; }
+#loginBtn { background: #38a169; color: white; }
+#logoutBtn { background: #e53e3e; color: white; display:none; }
 
-main {
-  max-width:1000px;
-  margin:auto;
-  padding:16px;
+#popup {
+  display:none;
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  width: 280px;
 }
 
-.panel {
-  background:white;
-  padding:16px;
-  border-radius:14px;
-  margin-bottom:16px;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);
+input, select, button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  font-size: 14px;
 }
 
-/* ===== SPIELER CARDS ===== */
-.players-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:16px;
+#timerBox {
+  background: white;
+  width: 200px;
+  margin: 20px auto;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  display:none;
+}
+
+#adminPanel {
+  display:none;
+  background: #edf2f7;
+  padding: 15px;
+  margin: 15px;
+  border-radius: 10px;
+}
+
+#players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+  padding: 15px;
 }
 
 .player-card {
-  border:2px solid #e5e7eb;
-  border-radius:14px;
-  padding:14px;
-  background:white;
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  text-align: left;
 }
 
-.player-card.raeuber { border-color:var(--red); }
-.player-card.polizist { border-color:var(--blue); }
-
-.player-card h4 {
-  margin:0 0 10px 0;
-  font-size:18px;
-}
+.player-card.raeuber { border-left: 6px solid #e53e3e; }
+.player-card.polizist { border-left: 6px solid #3182ce; }
 
 .label {
-  font-size:12px;
-  color:#6b7280;
+  font-size: 12px;
+  color: #555;
 }
 
 .value {
-  font-weight:bold;
-  margin-bottom:8px;
+  font-size: 16px;
+  margin-bottom: 6px;
 }
 
 .badge {
-  display:inline-block;
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:13px;
-  font-weight:bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: white;
+  font-size: 13px;
 }
 
-.badge.red { background:var(--red); color:white; }
-.badge.green { background:var(--green); color:white; }
-
-/* ===== POPUP LOGIN ===== */
-#popup {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:16px;
-}
-
-#popup .panel {
-  width:100%;
-  max-width:360px;
-}
-
-input, select {
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  margin-bottom:12px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
+.green { background: #38a169; }
+.red { background: #e53e3e; }
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1>🚓 Räuber & Gendarm</h1>
-  <div>
-    <button id="loginBtn" class="primary" onclick="showLogin()">Login</button>
-    <button id="logoutBtn" class="danger" onclick="logout()" style="display:none">Logout</button>
-  </div>
-</header>
+<header>Räuber und Gendarm</header>
 
-<main>
+<button id="loginBtn" onclick="showLogin()">Login</button>
+<button id="logoutBtn" onclick="logout()">Logout</button>
 
-<div id="adminPanel" class="panel" style="display:none"></div>
-<div id="policePanel" class="panel" style="display:none"></div>
+<div id="popup"></div>
 
-<div class="panel">
-  <h3>Spielerübersicht</h3>
-  <div id="players" class="players-grid"></div>
+<div id="timerBox">
+  <div><b>Polizei-Timer</b></div>
+  <div style="font-size:30px" id="timer">02</div>
 </div>
 
-</main>
-
-<div id="popup">
-  <div class="panel"></div>
+<div id="adminPanel">
+  <h3>Admin</h3>
+  <input id="playerName" placeholder="Name">
+  <select id="playerRole">
+    <option value="raeuber">Räuber</option>
+    <option value="polizist">Polizist</option>
+  </select>
+  <input id="playerPass" placeholder="Passwort (nur Polizist)">
+  <button onclick="addPlayer()">Spieler hinzufügen</button>
+  <button onclick="startTimer()">Timer starten</button>
 </div>
+
+<div id="players"></div>
 
 <script>
-// ========= STATE =========
-const ADMIN_PASS = "1234";
-
+let role = null;
 let game = JSON.parse(localStorage.getItem("game")) || {
-  role:null,
-  user:null,
-  players:[]
+  players: [],
+  timerStart: null
 };
 
-function save(){ localStorage.setItem("game",JSON.stringify(game)); }
+function save(){
+  localStorage.setItem("game", JSON.stringify(game));
+}
 
-// ========= LOGIN =========
+function roleLabel(r){
+  return r === "raeuber" ? "Räuber" : "Polizist";
+}
+
+// ---------- LOGIN ----------
 function showLogin(){
-  popup.style.display="flex";
-  popup.firstElementChild.innerHTML=`
+  popup.style.display = "block";
+  popup.innerHTML = `
     <h3>Login</h3>
-
-    <label class="label">Rolle</label>
-    <select id="loginRole" onchange="updateLoginFields()">
+    <select id="loginRole">
       <option value="admin">Admin</option>
       <option value="polizist">Polizist</option>
     </select>
-
-    <div id="loginFields"></div>
-
-    <button class="success" onclick="login()">Einloggen</button>
+    <input id="loginName" placeholder="Name (Polizist)">
+    <input id="loginPass" type="password" placeholder="Passwort">
+    <button onclick="login()">Einloggen</button>
   `;
-  updateLoginFields();
-}
-
-function updateLoginFields(){
-  if(loginRole.value==="admin"){
-    loginFields.innerHTML=`
-      <label class="label">Admin Passwort</label>
-      <input id="loginPass" type="password">
-    `;
-  } else {
-    loginFields.innerHTML=`
-      <label class="label">Name</label>
-      <input id="loginName">
-      <label class="label">Passwort</label>
-      <input id="loginPass" type="password">
-    `;
-  }
 }
 
 function login(){
-  if(loginRole.value==="admin"){
-    if(loginPass.value!==ADMIN_PASS){ alert("Falsches Passwort"); return; }
-    game.role="admin";
-    game.user="Admin";
-  } else {
-    const p = game.players.find(p =>
-      p.role==="polizist" &&
-      p.name===loginName.value &&
-      p.password===loginPass.value
-    );
-    if(!p){ alert("Name oder Passwort falsch"); return; }
-    game.role="polizist";
-    game.user=p.name;
+  role = loginRole.value;
+
+  if(role === "admin" && loginPass.value === "1234"){
+    afterLogin();
+    return;
   }
-  popup.style.display="none";
-  loginBtn.style.display="none";
-  logoutBtn.style.display="inline-block";
-  save();
+
+  if(role === "polizist"){
+    const ok = game.players.find(p =>
+      p.role === "polizist" &&
+      p.name === loginName.value &&
+      p.password === loginPass.value
+    );
+    if(ok){ afterLogin(); return; }
+  }
+
+  alert("Login fehlgeschlagen");
+}
+
+function afterLogin(){
+  popup.style.display = "none";
+  loginBtn.style.display = "none";
+  logoutBtn.style.display = "block";
+  if(role === "admin"){
+    adminPanel.style.display = "block";
+    timerBox.style.display = "block";
+  }
   render();
 }
 
 function logout(){
-  game.role=null;
-  game.user=null;
-  loginBtn.style.display="inline-block";
-  logoutBtn.style.display="none";
-  save();
-  render();
+  role = null;
+  adminPanel.style.display = "none";
+  timerBox.style.display = "none";
+  loginBtn.style.display = "block";
+  logoutBtn.style.display = "none";
 }
 
-// ========= ADMIN =========
-function showAdmin(){
-  adminPanel.style.display="block";
-  adminPanel.innerHTML=`
-    <h3>Admin</h3>
-
-    <label class="label">Name</label>
-    <input id="playerName">
-
-    <label class="label">Passwort (nur Polizist)</label>
-    <input id="playerPass">
-
-    <label class="label">Rolle</label>
-    <select id="playerRole">
-      <option value="raeuber">Räuber</option>
-      <option value="polizist">Polizist</option>
-    </select>
-
-    <button class="success" onclick="addPlayer()">Spieler hinzufügen</button>
-    <button class="danger" onclick="resetGame()">Spiel zurücksetzen</button>
-  `;
-}
-
+// ---------- SPIEL ----------
 function addPlayer(){
-  const name = playerName.value.trim();
-  if(!name){ alert("Name fehlt"); return; }
-
   game.players.push({
-    name:name,
-    password:playerPass.value,
-    role:playerRole.value,
-    caught:false
+    name: playerName.value,
+    role: playerRole.value,
+    password: playerPass.value,
+    caught: false
   });
   save();
   render();
 }
 
-function resetGame(){
-  if(!confirm("Spiel wirklich zurücksetzen?")) return;
-  game.players=[];
-  save();
-  render();
+function startTimer(){
+  if(!game.timerStart){
+    game.timerStart = Date.now();
+    save();
+  }
 }
 
-// ========= POLIZEI =========
-function showPolice(){
-  policePanel.style.display="block";
-  policePanel.innerHTML=`<h3>Polizist: ${game.user}</h3>`;
-}
-
-// ========= RENDER =========
 function render(){
-  players.innerHTML="";
-  game.players.forEach((p,i)=>{
-    players.innerHTML+=`
-      <div class="player-card ${p.role}">
-        <h4>${p.name}</h4>
-
-        <div class="label">Team</div>
-        <div class="value">${p.role}</div>
-
+  players.innerHTML = "";
+  game.players.forEach(p => {
+    let status = "";
+    if(p.role === "raeuber"){
+      status = `
         <div class="label">Status</div>
-        ${
-          p.role==="raeuber" && game.role==="polizist"
-          ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
-          : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`
-        }
-      </div>
-    `;
+        <div class="value">
+          <span class="badge ${p.caught ? "red":"green"}">
+            ${p.caught ? "Gefangen":"Frei"}
+          </span>
+        </div>`;
+    }
+
+    players.innerHTML += `
+      <div class="player-card ${p.role}">
+        <div class="label">Name</div>
+        <div class="value">${p.name}</div>
+        <div class="label">Rolle</div>
+        <div class="value">${roleLabel(p.role)}</div>
+        ${status}
+      </div>`;
   });
-
-  adminPanel.style.display="none";
-  policePanel.style.display="none";
-  if(game.role==="admin") showAdmin();
-  if(game.role==="polizist") showPolice();
 }
 
-function toggle(i){
-  game.players[i].caught=!game.players[i].caught;
-  save();
-  render();
-}
+// ---------- TIMER ----------
+setInterval(() => {
+  if(game.timerStart){
+    let sec = 2 - Math.floor((Date.now() - game.timerStart)/1000);
+    timer.innerText = sec > 0 ? sec : 0;
+  }
+}, 500);
 
-// ========= START =========
-if(game.role){
-  loginBtn.style.display="none";
-  logoutBtn.style.display="inline-block";
-}
 render();
 </script>
 
