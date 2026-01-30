@@ -8,95 +8,113 @@
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f4f4f4;
+  background: #f7f9fc;
   margin: 0;
 }
 
+/* HEADER */
 header {
-  background: #2b6cb0;
+  background: #4c6ef5;
   color: white;
-  padding: 15px;
+  padding: 16px;
   text-align: center;
   font-size: 22px;
 }
 
-/* Login / Logout */
+/* LOGIN / LOGOUT BUTTON */
 #loginBtn, #logoutBtn {
   position: fixed;
-  top: 10px;
-  right: 10px;
-  padding: 8px 14px;
+  top: 12px;
+  right: 12px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px; /* viereckig-modern */
   cursor: pointer;
   font-size: 14px;
+  font-weight: bold;
 }
-#loginBtn { background: #38a169; color: white; }
-#logoutBtn { background: #e53e3e; color: white; display: none; }
 
-/* Popup */
+#loginBtn {
+  background: #edf2ff;
+  color: #364fc7;
+}
+
+#logoutBtn {
+  background: #ffe3e3;
+  color: #c92a2a;
+  display: none;
+}
+
+/* POPUP */
 #popup {
   display: none;
   position: fixed;
-  top: 80px;
+  top: 90px;
   left: 50%;
   transform: translateX(-50%);
   background: white;
-  padding: 18px;
-  border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
   width: 280px;
 }
 
-/* Inputs */
+/* INPUTS */
 input, select, button {
   width: 100%;
-  padding: 8px;
+  padding: 9px;
   margin-top: 8px;
   font-size: 14px;
 }
 
-/* Timer */
+/* TIMER */
 #timerBox {
   background: white;
-  width: 180px;
-  margin: 20px auto;
-  padding: 12px;
-  border-radius: 10px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  width: 200px;
+  margin: 24px auto;
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
   display: none;
   text-align: center;
 }
 
-/* Admin */
+/* ADMIN */
 #adminPanel {
   display: none;
-  background: #eaeaea;
-  padding: 15px;
-  margin: 15px;
-  border-radius: 10px;
+  background: #eef2ff;
+  padding: 16px;
+  margin: 16px;
+  border-radius: 12px;
 }
 
-/* Spieler */
+/* SPIELER */
 #players {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 15px;
-  padding: 15px;
+  gap: 16px;
+  padding: 16px;
 }
 
 .player-card {
   background: white;
-  padding: 12px;
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
-.player-card.raeuber { border-left: 6px solid #e53e3e; }
-.player-card.polizist { border-left: 6px solid #3182ce; }
+.player-card.raeuber { border-left: 6px solid #ff6b6b; }
+.player-card.polizist { border-left: 6px solid #4dabf7; }
 
-.label { font-size: 12px; color: #555; }
-.value { font-size: 16px; margin-bottom: 6px; }
+.label {
+  font-size: 12px;
+  color: #666;
+}
+
+.value {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
 
 .badge {
   padding: 4px 8px;
@@ -104,8 +122,9 @@ input, select, button {
   color: white;
   font-size: 13px;
 }
-.green { background: #38a169; }
-.red { background: #e53e3e; }
+
+.green { background: #51cf66; }
+.red { background: #ff6b6b; }
 </style>
 </head>
 
@@ -120,7 +139,7 @@ input, select, button {
 
 <div id="timerBox">
   <b>Polizei-Timer</b>
-  <div id="timer" style="font-size:28px">02</div>
+  <div id="timer" style="font-size:30px">02</div>
 </div>
 
 <div id="adminPanel">
@@ -269,4 +288,3 @@ render();
 
 </body>
 </html>
-
