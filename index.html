@@ -3,60 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Räuber & Gendarm</title>
+<title>Räuber und Gendarm</title>
 
 <style>
 body {
-  margin: 0;
   font-family: Arial, sans-serif;
-  background: #f6f8fb;
+  background: #f2f4f8;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
 
-/* HEADER */
 header {
-  background: #5c7cfa;
+  background: #2b6cb0;
   color: white;
-  padding: 16px;
-  text-align: center;
+  padding: 15px;
   font-size: 22px;
 }
 
-/* LOGIN / LOGOUT */
 #loginBtn, #logoutBtn {
   position: fixed;
-  top: 12px;
-  right: 12px;
-  padding: 10px 16px;
+  top: 10px;
+  right: 10px;
+  padding: 10px 15px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: bold;
 }
 
-#loginBtn {
-  background: #e7f0ff;
-  color: #364fc7;
-}
+#loginBtn { background: #38a169; color: white; }
+#logoutBtn { background: #e53e3e; color: white; display:none; }
 
-#logoutBtn {
-  background: #ffe3e3;
-  color: #c92a2a;
-  display: none;
-}
-
-/* POPUP */
 #popup {
-  display: none;
+  display:none;
   position: fixed;
-  top: 90px;
+  top: 80px;
   left: 50%;
   transform: translateX(-50%);
   background: white;
   padding: 20px;
-  width: 280px;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  width: 280px;
 }
 
 input, select, button {
@@ -66,44 +55,41 @@ input, select, button {
   font-size: 14px;
 }
 
-/* TIMER */
 #timerBox {
-  display: none;
   background: white;
   width: 200px;
   margin: 20px auto;
-  padding: 14px;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  text-align: center;
-}
-
-/* ADMIN */
-#adminPanel {
-  display: none;
-  background: #eef2ff;
-  margin: 15px;
   padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  display:none;
+}
+
+#adminPanel {
+  display:none;
+  background: #edf2f7;
+  padding: 15px;
+  margin: 15px;
   border-radius: 10px;
 }
 
-/* SPIELER */
 #players {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 15px;
   padding: 15px;
 }
 
-.player {
+.player-card {
   background: white;
   padding: 12px;
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  text-align: left;
 }
 
-.player.raeuber { border-left: 6px solid #ff6b6b; }
-.player.polizist { border-left: 6px solid #4dabf7; }
+.player-card.raeuber { border-left: 6px solid #e53e3e; }
+.player-card.polizist { border-left: 6px solid #3182ce; }
 
 .label {
   font-size: 12px;
@@ -116,50 +102,47 @@ input, select, button {
 }
 
 .badge {
-  display: inline-block;
   padding: 4px 8px;
   border-radius: 6px;
   color: white;
   font-size: 13px;
 }
 
-.green { background: #51cf66; }
-.red { background: #ff6b6b; }
+.green { background: #38a169; }
+.red { background: #e53e3e; }
 </style>
 </head>
 
 <body>
 
-<header>Räuber & Gendarm</header>
+<header>Räuber und Gendarm</header>
 
-<button id="loginBtn" onclick="openLogin()">Login</button>
+<button id="loginBtn" onclick="showLogin()">Login</button>
 <button id="logoutBtn" onclick="logout()">Logout</button>
 
 <div id="popup"></div>
 
 <div id="timerBox">
-  <b>Polizei-Timer</b>
-  <div id="timer" style="font-size:30px">2</div>
+  <div><b>Polizei-Timer</b></div>
+  <div style="font-size:30px" id="timer">02</div>
 </div>
 
 <div id="adminPanel">
   <h3>Admin</h3>
-  <input id="pName" placeholder="Name">
-  <select id="pRole">
+  <input id="playerName" placeholder="Name">
+  <select id="playerRole">
     <option value="raeuber">Räuber</option>
     <option value="polizist">Polizist</option>
   </select>
-  <input id="pPass" placeholder="Passwort (Polizist)">
+  <input id="playerPass" placeholder="Passwort (nur Polizist)">
   <button onclick="addPlayer()">Spieler hinzufügen</button>
   <button onclick="startTimer()">Timer starten</button>
-  <button onclick="resetGame()">Reset</button>
 </div>
 
 <div id="players"></div>
 
 <script>
 let role = null;
-
 let game = JSON.parse(localStorage.getItem("game")) || {
   players: [],
   timerStart: null
@@ -173,40 +156,38 @@ function roleLabel(r){
   return r === "raeuber" ? "Räuber" : "Polizist";
 }
 
-/* LOGIN */
-function openLogin(){
+// ---------- LOGIN ----------
+function showLogin(){
   popup.style.display = "block";
   popup.innerHTML = `
     <h3>Login</h3>
-    <select id="lRole">
+    <select id="loginRole">
       <option value="admin">Admin</option>
       <option value="polizist">Polizist</option>
     </select>
-    <input id="lName" placeholder="Name (Polizist)">
-    <input id="lPass" type="password" placeholder="Passwort">
+    <input id="loginName" placeholder="Name (Polizist)">
+    <input id="loginPass" type="password" placeholder="Passwort">
     <button onclick="login()">Einloggen</button>
   `;
 }
 
 function login(){
-  if(lRole.value === "admin" && lPass.value === "1234"){
-    role = "admin";
+  role = loginRole.value;
+
+  if(role === "admin" && loginPass.value === "1234"){
     afterLogin();
     return;
   }
 
-  if(lRole.value === "polizist"){
+  if(role === "polizist"){
     const ok = game.players.find(p =>
       p.role === "polizist" &&
-      p.name === lName.value &&
-      p.password === lPass.value
+      p.name === loginName.value &&
+      p.password === loginPass.value
     );
-    if(ok){
-      role = "polizist";
-      afterLogin();
-      return;
-    }
+    if(ok){ afterLogin(); return; }
   }
+
   alert("Login fehlgeschlagen");
 }
 
@@ -214,11 +195,11 @@ function afterLogin(){
   popup.style.display = "none";
   loginBtn.style.display = "none";
   logoutBtn.style.display = "block";
-
   if(role === "admin"){
     adminPanel.style.display = "block";
     timerBox.style.display = "block";
   }
+  render();
 }
 
 function logout(){
@@ -229,24 +210,16 @@ function logout(){
   logoutBtn.style.display = "none";
 }
 
-/* SPIEL */
+// ---------- SPIEL ----------
 function addPlayer(){
   game.players.push({
-    name: pName.value,
-    role: pRole.value,
-    password: pPass.value,
+    name: playerName.value,
+    role: playerRole.value,
+    password: playerPass.value,
     caught: false
   });
   save();
   render();
-}
-
-function resetGame(){
-  if(confirm("Alles wirklich zurücksetzen?")){
-    game = { players: [], timerStart: null };
-    save();
-    render();
-  }
 }
 
 function startTimer(){
@@ -259,32 +232,33 @@ function startTimer(){
 function render(){
   players.innerHTML = "";
   game.players.forEach(p => {
+    let status = "";
+    if(p.role === "raeuber"){
+      status = `
+        <div class="label">Status</div>
+        <div class="value">
+          <span class="badge ${p.caught ? "red":"green"}">
+            ${p.caught ? "Gefangen":"Frei"}
+          </span>
+        </div>`;
+    }
+
     players.innerHTML += `
-      <div class="player ${p.role}">
+      <div class="player-card ${p.role}">
         <div class="label">Name</div>
         <div class="value">${p.name}</div>
-
         <div class="label">Rolle</div>
         <div class="value">${roleLabel(p.role)}</div>
-
-        ${p.role === "raeuber" ? `
-          <div class="label">Status</div>
-          <div class="value">
-            <span class="badge ${p.caught ? "red":"green"}">
-              ${p.caught ? "Gefangen":"Frei"}
-            </span>
-          </div>
-        ` : ""}
-      </div>
-    `;
+        ${status}
+      </div>`;
   });
 }
 
-/* TIMER */
+// ---------- TIMER ----------
 setInterval(() => {
   if(game.timerStart){
-    let s = 2 - Math.floor((Date.now() - game.timerStart)/1000);
-    timer.innerText = s > 0 ? s : 0;
+    let sec = 2 - Math.floor((Date.now() - game.timerStart)/1000);
+    timer.innerText = sec > 0 ? sec : 0;
   }
 }, 500);
 
