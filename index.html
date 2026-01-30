@@ -126,6 +126,14 @@ input, select {
   border-radius:8px;
   border:1px solid #ccc;
 }
+
+/* ===== TIMER ===== */
+#timerBar {
+  text-align:center;
+  padding:10px;
+  font-weight:bold;
+  display:none;
+}
 </style>
 </head>
 
@@ -138,6 +146,10 @@ input, select {
     <button id="logoutBtn" class="danger" onclick="logout()" style="display:none">Logout</button>
   </div>
 </header>
+
+<div id="timerBar">
+  ⏱️ Zeit: <span id="timer">10:00</span>
+</div>
 
 <main>
 
@@ -158,6 +170,7 @@ input, select {
 <script>
 // ========= STATE =========
 const ADMIN_PASS = "1234";
+let timerInterval = null;
 
 let game = JSON.parse(localStorage.getItem("game")) || {
   role:null,
@@ -252,6 +265,7 @@ function showAdmin(){
     </select>
 
     <button class="success" onclick="addPlayer()">Spieler hinzufügen</button>
+    <button class="primary" onclick="startTimer()">⏱️ Timer starten (10 Min)</button>
     <button class="danger" onclick="resetGame()">Spiel zurücksetzen</button>
   `;
 }
@@ -275,6 +289,30 @@ function resetGame(){
   game.players=[];
   save();
   render();
+}
+
+// ========= TIMER =========
+function startTimer(){
+  let time = 10 * 60;
+  clearInterval(timerInterval);
+  timerBar.style.display="block";
+  updateTimer(time);
+
+  timerInterval = setInterval(()=>{
+    time--;
+    updateTimer(time);
+    if(time<=0){
+      clearInterval(timerInterval);
+      timer.textContent="00:00";
+      alert("⏰ Zeit abgelaufen!");
+    }
+  },1000);
+}
+
+function updateTimer(seconds){
+  const m = String(Math.floor(seconds/60)).padStart(2,"0");
+  const s = String(seconds%60).padStart(2,"0");
+  timer.textContent=`${m}:${s}`;
 }
 
 // ========= POLIZEI =========
