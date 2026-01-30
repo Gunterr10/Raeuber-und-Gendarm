@@ -8,46 +8,47 @@
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f2f4f8;
+  background: #f4f4f4;
   margin: 0;
-  padding: 0;
-  text-align: center;
 }
 
 header {
   background: #2b6cb0;
   color: white;
   padding: 15px;
+  text-align: center;
   font-size: 22px;
 }
 
+/* Login / Logout */
 #loginBtn, #logoutBtn {
   position: fixed;
   top: 10px;
   right: 10px;
-  padding: 10px 15px;
+  padding: 8px 14px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
 }
-
 #loginBtn { background: #38a169; color: white; }
-#logoutBtn { background: #e53e3e; color: white; display:none; }
+#logoutBtn { background: #e53e3e; color: white; display: none; }
 
+/* Popup */
 #popup {
-  display:none;
+  display: none;
   position: fixed;
   top: 80px;
   left: 50%;
   transform: translateX(-50%);
   background: white;
-  padding: 20px;
+  padding: 18px;
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   width: 280px;
 }
 
+/* Inputs */
 input, select, button {
   width: 100%;
   padding: 8px;
@@ -55,27 +56,31 @@ input, select, button {
   font-size: 14px;
 }
 
+/* Timer */
 #timerBox {
   background: white;
-  width: 200px;
+  width: 180px;
   margin: 20px auto;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  display:none;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  display: none;
+  text-align: center;
 }
 
+/* Admin */
 #adminPanel {
-  display:none;
-  background: #edf2f7;
+  display: none;
+  background: #eaeaea;
   padding: 15px;
   margin: 15px;
   border-radius: 10px;
 }
 
+/* Spieler */
 #players {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 15px;
   padding: 15px;
 }
@@ -85,21 +90,13 @@ input, select, button {
   padding: 12px;
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  text-align: left;
 }
 
 .player-card.raeuber { border-left: 6px solid #e53e3e; }
 .player-card.polizist { border-left: 6px solid #3182ce; }
 
-.label {
-  font-size: 12px;
-  color: #555;
-}
-
-.value {
-  font-size: 16px;
-  margin-bottom: 6px;
-}
+.label { font-size: 12px; color: #555; }
+.value { font-size: 16px; margin-bottom: 6px; }
 
 .badge {
   padding: 4px 8px;
@@ -107,7 +104,6 @@ input, select, button {
   color: white;
   font-size: 13px;
 }
-
 .green { background: #38a169; }
 .red { background: #e53e3e; }
 </style>
@@ -123,8 +119,8 @@ input, select, button {
 <div id="popup"></div>
 
 <div id="timerBox">
-  <div><b>Polizei-Timer</b></div>
-  <div style="font-size:30px" id="timer">02</div>
+  <b>Polizei-Timer</b>
+  <div id="timer" style="font-size:28px">02</div>
 </div>
 
 <div id="adminPanel">
@@ -134,9 +130,10 @@ input, select, button {
     <option value="raeuber">Räuber</option>
     <option value="polizist">Polizist</option>
   </select>
-  <input id="playerPass" placeholder="Passwort (nur Polizist)">
+  <input id="playerPass" placeholder="Passwort (Polizist)">
   <button onclick="addPlayer()">Spieler hinzufügen</button>
   <button onclick="startTimer()">Timer starten</button>
+  <button onclick="resetGame()">Reset</button>
 </div>
 
 <div id="players"></div>
@@ -156,7 +153,7 @@ function roleLabel(r){
   return r === "raeuber" ? "Räuber" : "Polizist";
 }
 
-// ---------- LOGIN ----------
+/* LOGIN */
 function showLogin(){
   popup.style.display = "block";
   popup.innerHTML = `
@@ -172,22 +169,24 @@ function showLogin(){
 }
 
 function login(){
-  role = loginRole.value;
-
-  if(role === "admin" && loginPass.value === "1234"){
+  if(loginRole.value === "admin" && loginPass.value === "1234"){
+    role = "admin";
     afterLogin();
     return;
   }
 
-  if(role === "polizist"){
+  if(loginRole.value === "polizist"){
     const ok = game.players.find(p =>
       p.role === "polizist" &&
       p.name === loginName.value &&
       p.password === loginPass.value
     );
-    if(ok){ afterLogin(); return; }
+    if(ok){
+      role = "polizist";
+      afterLogin();
+      return;
+    }
   }
-
   alert("Login fehlgeschlagen");
 }
 
@@ -210,7 +209,7 @@ function logout(){
   logoutBtn.style.display = "none";
 }
 
-// ---------- SPIEL ----------
+/* SPIEL */
 function addPlayer(){
   game.players.push({
     name: playerName.value,
@@ -220,6 +219,14 @@ function addPlayer(){
   });
   save();
   render();
+}
+
+function resetGame(){
+  if(confirm("Alles zurücksetzen?")){
+    game = { players: [], timerStart: null };
+    save();
+    render();
+  }
 }
 
 function startTimer(){
@@ -232,33 +239,28 @@ function startTimer(){
 function render(){
   players.innerHTML = "";
   game.players.forEach(p => {
-    let status = "";
-    if(p.role === "raeuber"){
-      status = `
-        <div class="label">Status</div>
-        <div class="value">
-          <span class="badge ${p.caught ? "red":"green"}">
-            ${p.caught ? "Gefangen":"Frei"}
-          </span>
-        </div>`;
-    }
-
     players.innerHTML += `
       <div class="player-card ${p.role}">
         <div class="label">Name</div>
         <div class="value">${p.name}</div>
         <div class="label">Rolle</div>
         <div class="value">${roleLabel(p.role)}</div>
-        ${status}
+        ${p.role === "raeuber" ? `
+        <div class="label">Status</div>
+        <div class="value">
+          <span class="badge ${p.caught ? "red":"green"}">
+            ${p.caught ? "Gefangen":"Frei"}
+          </span>
+        </div>` : ""}
       </div>`;
   });
 }
 
-// ---------- TIMER ----------
+/* TIMER */
 setInterval(() => {
   if(game.timerStart){
-    let sec = 2 - Math.floor((Date.now() - game.timerStart)/1000);
-    timer.innerText = sec > 0 ? sec : 0;
+    let s = 2 - Math.floor((Date.now() - game.timerStart)/1000);
+    timer.innerText = s > 0 ? s : 0;
   }
 }, 500);
 
