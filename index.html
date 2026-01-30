@@ -120,4 +120,145 @@ function showLogin(){
     <select id="loginRole" onchange="updateLoginFields()">
       <option value="admin">Admin</option>
       <option value="polizist">Polizist</option>
-    </
+    </select>
+    <div id="loginFields"></div>
+    <button class="success" onclick="login()">Einloggen</button>
+  `;
+  updateLoginFields();
+}
+
+function updateLoginFields(){
+  if(loginRole.value==="admin"){
+    loginFields.innerHTML=`
+      <input id="loginPass" type="password" placeholder="Admin Passwort">
+    `;
+  } else {
+    loginFields.innerHTML=`
+      <input id="loginName" placeholder="Name">
+      <input id="loginPass" type="password" placeholder="Passwort">
+    `;
+  }
+}
+
+function login(){
+  if(loginRole.value==="admin"){
+    if(loginPass.value!==ADMIN_PASS){ alert("Falsches Passwort"); return; }
+    game.role="admin";
+    game.user="Admin";
+  } else {
+    const p = game.players.find(p =>
+      p.role==="polizist" &&
+      p.name===loginName.value &&
+      p.password===loginPass.value
+    );
+    if(!p){ alert("Name oder Passwort falsch"); return; }
+    game.role="polizist";
+    game.user=p.name;
+  }
+  popup.style.display="none";
+  loginBtn.style.display="none";
+  logoutBtn.style.display="inline-block";
+  save();
+  render();
+}
+
+function logout(){
+  game.role=null;
+  game.user=null;
+  loginBtn.style.display="inline-block";
+  logoutBtn.style.display="none";
+  save();
+  render();
+}
+
+// ========= ADMIN =========
+function showAdmin(){
+  adminPanel.style.display="block";
+  adminPanel.innerHTML=`
+    <h3>Admin Panel</h3>
+
+    <input id="playerName" placeholder="Name">
+    <input id="playerPass" placeholder="Passwort (nur Polizist)">
+    <select id="playerRole">
+      <option value="raeuber">Räuber</option>
+      <option value="polizist">Polizist</option>
+    </select>
+
+    <button class="success" onclick="addPlayer()">Spieler hinzufügen</button>
+    <button class="danger" onclick="resetGame()">Spiel zurücksetzen</button>
+  `;
+}
+
+function addPlayer(){
+  const name = document.getElementById("playerName").value.trim();
+  const pass = document.getElementById("playerPass").value;
+  const role = document.getElementById("playerRole").value;
+
+  if(!name){
+    alert("Name fehlt");
+    return;
+  }
+
+  game.players.push({
+    name:name,
+    password:pass,
+    role:role,
+    caught:false
+  });
+
+  save();
+  render();
+}
+
+function resetGame(){
+  if(!confirm("Spiel wirklich zurücksetzen?")) return;
+  game.players=[];
+  save();
+  render();
+}
+
+// ========= POLIZEI =========
+function showPolice(){
+  policePanel.style.display="block";
+  policePanel.innerHTML=`<h3>Polizist: ${game.user}</h3>`;
+}
+
+// ========= RENDER =========
+function render(){
+  players.innerHTML="<table><tr><th>Name</th><th>Team</th><th>Status</th></tr>";
+  game.players.forEach((p,i)=>{
+    players.innerHTML+=`
+      <tr class="${p.role}">
+        <td>${p.name}</td>
+        <td>${p.role}</td>
+        <td>
+          ${p.role==="raeuber" && game.role==="polizist"
+            ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
+            : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`}
+        </td>
+      </tr>`;
+  });
+  players.innerHTML+="</table>";
+
+  adminPanel.style.display="none";
+  policePanel.style.display="none";
+  if(game.role==="admin") showAdmin();
+  if(game.role==="polizist") showPolice();
+}
+
+function toggle(i){
+  game.players[i].caught=!game.players[i].caught;
+  save();
+  render();
+}
+
+// ========= START =========
+if(game.role){
+  loginBtn.style.display="none";
+  logoutBtn.style.display="inline-block";
+}
+render();
+</script>
+
+</body>
+</html>
