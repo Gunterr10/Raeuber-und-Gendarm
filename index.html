@@ -140,7 +140,7 @@ input, select {
 <body>
 
 <header>
-  <h1>🚓 Räuber & Gendarm</h1>
+  <h1> Räuber & Gendarm</h1>
   <div>
     <button id="loginBtn" class="primary" onclick="showLogin()">Login</button>
     <button id="logoutBtn" class="danger" onclick="logout()" style="display:none">Logout</button>
@@ -265,10 +265,11 @@ function showAdmin(){
     </select>
 
     <button class="success" onclick="addPlayer()">Spieler hinzufügen</button>
-    <button class="primary" onclick="startTimer()">⏱️ Timer starten (10 Min)</button>
+    <button class="primary" onclick="startTimer()">⏱️ TIMER STARTEN (10:00)</button>
     <button class="danger" onclick="resetGame()">Spiel zurücksetzen</button>
   `;
 }
+
 
 function addPlayer(){
   const name = playerName.value.trim();
