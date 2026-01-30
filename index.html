@@ -6,6 +6,8 @@
 <title>Räuber & Gendarm</title>
 
 <style>
+* { box-sizing: border-box; }
+
 :root {
   --blue:#2563eb;
   --red:#ef4444;
@@ -13,7 +15,14 @@
   --gray:#f3f4f6;
   --dark:#111827;
 }
-body { font-family: system-ui, Arial; background:var(--gray); margin:0; }
+
+body {
+  font-family: system-ui, Arial, sans-serif;
+  background:var(--gray);
+  margin:0;
+  color:var(--dark);
+}
+
 header {
   background:linear-gradient(90deg,var(--blue),#3b82f6);
   color:white;
@@ -22,39 +31,78 @@ header {
   justify-content:space-between;
   align-items:center;
 }
+
+h1 { margin:0; font-size:22px; }
+
 button {
   padding:10px 14px;
   border:none;
   border-radius:8px;
   cursor:pointer;
 }
+
 button.primary { background:white; color:var(--blue); }
 button.success { background:var(--green); color:white; }
 button.danger { background:var(--red); color:white; }
 
-main { max-width:900px; margin:auto; padding:16px; }
+main {
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+}
+
 .panel {
   background:white;
   padding:16px;
-  border-radius:12px;
+  border-radius:14px;
   margin-bottom:16px;
-  box-shadow:0 5px 15px rgba(0,0,0,.05);
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
 }
-table { width:100%; border-collapse:collapse; }
-th,td { padding:12px; }
-th { background:#e5e7eb; }
-tr.raeuber { background:#fee2e2; }
-tr.polizist { background:#dbeafe; }
+
+/* ===== SPIELER CARDS ===== */
+.players-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
+}
+
+.player-card {
+  border:2px solid #e5e7eb;
+  border-radius:14px;
+  padding:14px;
+  background:white;
+}
+
+.player-card.raeuber { border-color:var(--red); }
+.player-card.polizist { border-color:var(--blue); }
+
+.player-card h4 {
+  margin:0 0 10px 0;
+  font-size:18px;
+}
+
+.label {
+  font-size:12px;
+  color:#6b7280;
+}
+
+.value {
+  font-weight:bold;
+  margin-bottom:8px;
+}
 
 .badge {
-  padding:4px 10px;
+  display:inline-block;
+  padding:6px 12px;
   border-radius:999px;
-  font-size:12px;
+  font-size:13px;
   font-weight:bold;
 }
+
 .badge.red { background:var(--red); color:white; }
 .badge.green { background:var(--green); color:white; }
 
+/* ===== POPUP LOGIN ===== */
 #popup {
   position:fixed;
   inset:0;
@@ -62,13 +110,18 @@ tr.polizist { background:#dbeafe; }
   display:none;
   align-items:center;
   justify-content:center;
+  padding:16px;
 }
-#popup .panel { max-width:340px; }
+
+#popup .panel {
+  width:100%;
+  max-width:360px;
+}
 
 input, select {
   width:100%;
   padding:10px;
-  margin-top:8px;
+  margin-top:6px;
   margin-bottom:12px;
   border-radius:8px;
   border:1px solid #ccc;
@@ -87,13 +140,15 @@ input, select {
 </header>
 
 <main>
-  <div id="adminPanel" class="panel" style="display:none"></div>
-  <div id="policePanel" class="panel" style="display:none"></div>
 
-  <div class="panel">
-    <h3>Spieler</h3>
-    <div id="players"></div>
-  </div>
+<div id="adminPanel" class="panel" style="display:none"></div>
+<div id="policePanel" class="panel" style="display:none"></div>
+
+<div class="panel">
+  <h3>Spielerübersicht</h3>
+  <div id="players" class="players-grid"></div>
+</div>
+
 </main>
 
 <div id="popup">
@@ -117,11 +172,15 @@ function showLogin(){
   popup.style.display="flex";
   popup.firstElementChild.innerHTML=`
     <h3>Login</h3>
+
+    <label class="label">Rolle</label>
     <select id="loginRole" onchange="updateLoginFields()">
       <option value="admin">Admin</option>
       <option value="polizist">Polizist</option>
     </select>
+
     <div id="loginFields"></div>
+
     <button class="success" onclick="login()">Einloggen</button>
   `;
   updateLoginFields();
@@ -130,12 +189,15 @@ function showLogin(){
 function updateLoginFields(){
   if(loginRole.value==="admin"){
     loginFields.innerHTML=`
-      <input id="loginPass" type="password" placeholder="Admin Passwort">
+      <label class="label">Admin Passwort</label>
+      <input id="loginPass" type="password">
     `;
   } else {
     loginFields.innerHTML=`
-      <input id="loginName" placeholder="Name">
-      <input id="loginPass" type="password" placeholder="Passwort">
+      <label class="label">Name</label>
+      <input id="loginName">
+      <label class="label">Passwort</label>
+      <input id="loginPass" type="password">
     `;
   }
 }
@@ -175,10 +237,15 @@ function logout(){
 function showAdmin(){
   adminPanel.style.display="block";
   adminPanel.innerHTML=`
-    <h3>Admin Panel</h3>
+    <h3>Admin</h3>
 
-    <input id="playerName" placeholder="Name">
-    <input id="playerPass" placeholder="Passwort (nur Polizist)">
+    <label class="label">Name</label>
+    <input id="playerName">
+
+    <label class="label">Passwort (nur Polizist)</label>
+    <input id="playerPass">
+
+    <label class="label">Rolle</label>
     <select id="playerRole">
       <option value="raeuber">Räuber</option>
       <option value="polizist">Polizist</option>
@@ -190,22 +257,15 @@ function showAdmin(){
 }
 
 function addPlayer(){
-  const name = document.getElementById("playerName").value.trim();
-  const pass = document.getElementById("playerPass").value;
-  const role = document.getElementById("playerRole").value;
-
-  if(!name){
-    alert("Name fehlt");
-    return;
-  }
+  const name = playerName.value.trim();
+  if(!name){ alert("Name fehlt"); return; }
 
   game.players.push({
     name:name,
-    password:pass,
-    role:role,
+    password:playerPass.value,
+    role:playerRole.value,
     caught:false
   });
-
   save();
   render();
 }
@@ -225,20 +285,24 @@ function showPolice(){
 
 // ========= RENDER =========
 function render(){
-  players.innerHTML="<table><tr><th>Name</th><th>Team</th><th>Status</th></tr>";
+  players.innerHTML="";
   game.players.forEach((p,i)=>{
     players.innerHTML+=`
-      <tr class="${p.role}">
-        <td>${p.name}</td>
-        <td>${p.role}</td>
-        <td>
-          ${p.role==="raeuber" && game.role==="polizist"
-            ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
-            : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`}
-        </td>
-      </tr>`;
+      <div class="player-card ${p.role}">
+        <h4>${p.name}</h4>
+
+        <div class="label">Team</div>
+        <div class="value">${p.role}</div>
+
+        <div class="label">Status</div>
+        ${
+          p.role==="raeuber" && game.role==="polizist"
+          ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
+          : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`
+        }
+      </div>
+    `;
   });
-  players.innerHTML+="</table>";
 
   adminPanel.style.display="none";
   policePanel.style.display="none";
@@ -262,3 +326,4 @@ render();
 
 </body>
 </html>
+
