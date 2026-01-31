@@ -325,7 +325,21 @@ function showPolice(){
 // ========= RENDER =========
 function render(){
   players.innerHTML="";
+
   game.players.forEach((p,i)=>{
+    let statusHTML = "";
+
+    if(p.role==="raeuber"){
+      statusHTML =
+        game.role==="polizist"
+        ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
+        : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`;
+    }
+
+    if(p.role==="polizist"){
+      statusHTML = `<span class="badge" style="border:2px solid var(--blue); color:var(--blue); background:white;">Im Einsatz</span>`;
+    }
+
     players.innerHTML+=`
       <div class="player-card ${p.role}">
         <h4>${p.name}</h4>
@@ -334,14 +348,17 @@ function render(){
         <div class="value">${p.role}</div>
 
         <div class="label">Status</div>
-        ${
-          p.role==="raeuber" && game.role==="polizist"
-          ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
-          : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`
-        }
+        ${statusHTML}
       </div>
     `;
   });
+
+  adminPanel.style.display="none";
+  policePanel.style.display="none";
+  if(game.role==="admin") showAdmin();
+  if(game.role==="polizist") showPolice();
+}
+
 
   adminPanel.style.display="none";
   policePanel.style.display="none";
