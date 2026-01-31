@@ -1,200 +1,35 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Räuber & Gendarm</title>
-
-<style>
-* { box-sizing: border-box; }
-
-:root {
-  --blue:#2563eb;
-  --red:#ef4444;
-  --green:#22c55e;
-  --gray:#f3f4f6;
-  --dark:#111827;
-}
-
-body {
-  font-family: system-ui, Arial, sans-serif;
-  background:var(--gray);
-  margin:0;
-  color:var(--dark);
-}
-
-header {
-  background:linear-gradient(90deg,var(--blue),#3b82f6);
-  color:white;
-  padding:16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-h1 { margin:0; font-size:22px; }
-
-button {
-  padding:10px 14px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-button.primary { background:white; color:var(--blue); }
-button.success { background:var(--green); color:white; }
-button.danger { background:var(--red); color:white; }
-
-main {
-  max-width:1000px;
-  margin:auto;
-  padding:16px;
-}
-
-.panel {
-  background:white;
-  padding:16px;
-  border-radius:14px;
-  margin-bottom:16px;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);
-}
-
-/* ===== SPIELER CARDS ===== */
-.players-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:16px;
-}
-
-.player-card {
-  border:2px solid #e5e7eb;
-  border-radius:14px;
-  padding:14px;
-  background:white;
-}
-
-.player-card.raeuber { border-color:var(--red); }
-.player-card.polizist { border-color:var(--blue); }
-
-.player-card h4 {
-  margin:0 0 10px 0;
-  font-size:18px;
-}
-
-.label {
-  font-size:12px;
-  color:#6b7280;
-}
-
-.value {
-  font-weight:bold;
-  margin-bottom:8px;
-}
-
-.badge {
-  display:inline-block;
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:13px;
-  font-weight:bold;
-}
-
-.badge.red { background:var(--red); color:white; }
-.badge.green { background:var(--green); color:white; }
-
-/* ===== POPUP LOGIN ===== */
-#popup {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:16px;
-}
-
-#popup .panel {
-  width:100%;
-  max-width:360px;
-}
-
-input, select {
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  margin-bottom:12px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-/* ===== TIMER ===== */
-#timerBar {
-  text-align:center;
-  padding:10px;
-  font-weight:bold;
-  display:none;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <h1>🚓 Räuber & Gendarm</h1>
-  <h1> Räuber & Gendarm</h1>
-  <div>
-    <button id="loginBtn" class="primary" onclick="showLogin()">Login</button>
-    <button id="logoutBtn" class="danger" onclick="logout()" style="display:none">Logout</button>
-  </div>
-</header>
-
-<div id="timerBar">
-  ⏱️ Zeit: <span id="timer">10:00</span>
-</div>
-
-<main>
-
-<div id="adminPanel" class="panel" style="display:none"></div>
-<div id="policePanel" class="panel" style="display:none"></div>
-
-<div class="panel">
-  <h3>Spielerübersicht</h3>
-  <div id="players" class="players-grid"></div>
-</div>
-
-</main>
-
-<div id="popup">
-  <div class="panel"></div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ========= SUPABASE =========
+const SUPABASE_URL = "https://vvqrtridwsnogpvuszup.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ahah-w8vjtxQ3d3KeOATFg_NsXzsljk";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
 // ========= STATE =========
 const ADMIN_PASS = "1234";
 let timerInterval = null;
 
-let game = JSON.parse(localStorage.getItem("game")) || {
+let game = {
   role:null,
   user:null,
   players:[]
 };
-
-function save(){ localStorage.setItem("game",JSON.stringify(game)); }
 
 // ========= LOGIN =========
 function showLogin(){
   popup.style.display="flex";
   popup.firstElementChild.innerHTML=`
     <h3>Login</h3>
-
     <label class="label">Rolle</label>
     <select id="loginRole" onchange="updateLoginFields()">
       <option value="admin">Admin</option>
       <option value="polizist">Polizist</option>
     </select>
-
     <div id="loginFields"></div>
-
     <button class="success" onclick="login()">Einloggen</button>
   `;
   updateLoginFields();
@@ -216,25 +51,32 @@ function updateLoginFields(){
   }
 }
 
-function login(){
+async function login(){
   if(loginRole.value==="admin"){
-    if(loginPass.value!==ADMIN_PASS){ alert("Falsches Passwort"); return; }
+    if(loginPass.value!==ADMIN_PASS){
+      alert("Falsches Passwort"); return;
+    }
     game.role="admin";
     game.user="Admin";
   } else {
-    const p = game.players.find(p =>
-      p.role==="polizist" &&
-      p.name===loginName.value &&
-      p.password===loginPass.value
-    );
-    if(!p){ alert("Name oder Passwort falsch"); return; }
+    const { data } = await supabase
+      .from("players")
+      .select("*")
+      .eq("role","polizist")
+      .eq("name",loginName.value)
+      .eq("password",loginPass.value)
+      .single();
+
+    if(!data){
+      alert("Name oder Passwort falsch"); return;
+    }
     game.role="polizist";
-    game.user=p.name;
+    game.user=data.name;
   }
+
   popup.style.display="none";
   loginBtn.style.display="none";
   logoutBtn.style.display="inline-block";
-  save();
   render();
 }
 
@@ -243,7 +85,6 @@ function logout(){
   game.user=null;
   loginBtn.style.display="inline-block";
   logoutBtn.style.display="none";
-  save();
   render();
 }
 
@@ -271,43 +112,60 @@ function showAdmin(){
   `;
 }
 
-
-function addPlayer(){
+async function addPlayer(){
   const name = playerName.value.trim();
   if(!name){ alert("Name fehlt"); return; }
 
-  game.players.push({
-    name:name,
-    password:playerPass.value,
-    role:playerRole.value,
-    caught:false
+  await supabase.from("players").insert({
+    name: name,
+    password: playerPass.value,
+    role: playerRole.value,
+    caught: false
   });
-  save();
-  render();
 }
 
-function resetGame(){
+async function resetGame(){
   if(!confirm("Spiel wirklich zurücksetzen?")) return;
-  game.players=[];
-  save();
-  render();
+  await supabase.from("players").delete().neq("id","000");
+  await supabase.from("game_state")
+    .update({ running:false, timer_start:null })
+    .eq("id",1);
 }
 
-// ========= TIMER =========
-function startTimer(){
-  let time = 10 * 60;
-  clearInterval(timerInterval);
+// ========= TIMER (SYNC) =========
+async function startTimer(){
+  await supabase
+    .from("game_state")
+    .update({
+      timer_start: new Date().toISOString(),
+      running: true
+    })
+    .eq("id",1);
+}
+
+async function loadTimer(){
+  const { data } = await supabase
+    .from("game_state")
+    .select("*")
+    .eq("id",1)
+    .single();
+
+  if(!data || !data.running) return;
+
+  const start = new Date(data.timer_start).getTime();
+  const duration = 10 * 60 * 1000;
+
   timerBar.style.display="block";
-  updateTimer(time);
+  clearInterval(timerInterval);
 
   timerInterval = setInterval(()=>{
-    time--;
-    updateTimer(time);
-    if(time<=0){
-      clearInterval(timerInterval);
+    const left = duration - (Date.now() - start);
+    if(left <= 0){
       timer.textContent="00:00";
-      alert("⏰ Zeit abgelaufen!");
+      clearInterval(timerInterval);
+      return;
     }
+    updateTimer(Math.floor(left/1000));
   },1000);
 }
 
@@ -323,10 +181,20 @@ function showPolice(){
   policePanel.innerHTML=`<h3>Polizist: ${game.user}</h3>`;
 }
 
-// ========= RENDER =========
+// ========= SPIELER =========
+async function loadPlayers(){
+  const { data } = await supabase
+    .from("players")
+    .select("*")
+    .order("name");
+
+  game.players = data || [];
+  render();
+}
+
 function render(){
   players.innerHTML="";
-  game.players.forEach((p,i)=>{
+  game.players.forEach(p=>{
     players.innerHTML+=`
       <div class="player-card ${p.role}">
         <h4>${p.name}</h4>
@@ -337,8 +205,12 @@ function render(){
         <div class="label">Status</div>
         ${
           p.role==="raeuber" && game.role==="polizist"
-          ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
-          : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`
+          ? `<button class="primary" onclick="toggle('${p.id}',${p.caught})">
+              ${p.caught?"Freilassen":"Fangen"}
+            </button>`
+          : `<span class="badge ${p.caught?"red":"green"}">
+              ${p.caught?"Gefangen":"Frei"}
+            </span>`
         }
       </div>
     `;
@@ -350,19 +222,21 @@ function render(){
   if(game.role==="polizist") showPolice();
 }
 
-function toggle(i){
-  game.players[i].caught=!game.players[i].caught;
-  save();
-  render();
+async function toggle(id,caught){
+  await supabase
+    .from("players")
+    .update({ caught: !caught })
+    .eq("id",id);
 }
+
+// ========= REALTIME =========
+supabase
+  .channel("live")
+  .on("postgres_changes",{event:"*",schema:"public",table:"players"},loadPlayers)
+  .on("postgres_changes",{event:"*",schema:"public",table:"game_state"},loadTimer)
+  .subscribe();
 
 // ========= START =========
-if(game.role){
-  loginBtn.style.display="none";
-  logoutBtn.style.display="inline-block";
-}
-render();
+loadPlayers();
+loadTimer();
 </script>
-
-</body>
-</html>
