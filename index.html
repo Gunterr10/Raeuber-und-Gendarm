@@ -264,17 +264,18 @@ function updateTimer(s){
     String(s%60).padStart(2,"0");
 }
 
-  // ===== RESET =====
+ // ===== RESET =====
 function resetGame(){
-  if(!confirm("Spiel wirklich zurücksetzen?")) return;
 
-  game.players.forEach(p=>{
-    p.caught=false;
-    p.streak=0;
-  });
-
-  timerBar.style.display="none";
+  // Timer stoppen
   clearInterval(timerInterval);
+  timerBar.style.display="none";
+
+  // Spieler zurücksetzen
+  game.players.forEach(p=>{
+    p.caught = false;
+    p.streak = 0;
+  });
 
   save();
   render();
