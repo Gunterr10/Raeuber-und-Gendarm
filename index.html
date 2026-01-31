@@ -1,5 +1,5 @@
 <script>
-// ===== DOM =====
+// ===== DOM FIX (wichtig für Login!) =====
 const loginBtn=document.getElementById("loginBtn");
 const logoutBtn=document.getElementById("logoutBtn");
 const popup=document.getElementById("popup");
@@ -17,8 +17,8 @@ let game=JSON.parse(localStorage.getItem("game"))||{
   role:null,
   user:null,
   players:[],
-  timeLeft:0,
-  timerRunning:false
+  timeLeft:0,        // ⭐ gespeichert
+  timerRunning:false // ⭐ gespeichert
 };
 
 function save(){
@@ -54,42 +54,28 @@ function updateLoginFields(){
 function login(){
   if(loginRole.value==="admin"){
     if(loginPass.value!==ADMIN_PASS) return alert("Falsches Passwort");
-    game.role="admin";
-    game.user="Admin";
+    game.role="admin"; game.user="Admin";
   } else {
-    const p=game.players.find(p=>
-      p.role==="polizist" &&
-      p.name===loginName.value &&
-      p.password===loginPass.value
-    );
+    const p=game.players.find(p=>p.role==="polizist"&&p.name===loginName.value&&p.password===loginPass.value);
     if(!p) return alert("Falsch");
-    game.role="polizist";
-    game.user=p.name;
+    game.role="polizist"; game.user=p.name;
   }
-
   popup.style.display="none";
   loginBtn.style.display="none";
   logoutBtn.style.display="inline-block";
-
-  save();
-  render();
+  save(); render();
 }
 
 function logout(){
-  game.role=null;
-  game.user=null;
-
+  game.role=null; game.user=null;
   loginBtn.style.display="inline-block";
   logoutBtn.style.display="none";
-
-  save();
-  render();
+  save(); render();
 }
 
 // ===== ADMIN =====
 function showAdmin(){
   adminPanel.style.display="block";
-
   adminPanel.innerHTML=`
     <h3>Admin</h3>
     <input id="playerName" placeholder="Name">
@@ -115,64 +101,58 @@ function addPlayer(){
     streak:0
   });
 
-  save();
-  render();
+  save(); render();
 }
 
 // ===== TIMER =====
 function startTimer(){
-  game.timeLeft = 600; // 10 Minuten
-  game.timerRunning = true;
-  runTimer();
-}
+  let t=600;
 
-function runTimer(){
+  game.timeLeft=t;          // ⭐ speichern
+  game.timerRunning=true;  // ⭐ speichern
 
   timerBar.style.display="block";
+  updateTimer(t);
 
   clearInterval(timerInterval);
 
-  updateTimer(game.timeLeft);
-
   timerInterval=setInterval(()=>{
+    t--;
 
-    game.timeLeft--;
-
-    updateTimer(game.timeLeft);
+    game.timeLeft=t; // ⭐ jede Sekunde speichern
     save();
 
-    if(game.timeLeft<=0){
+    updateTimer(t);
+
+    if(t<=0){
       clearInterval(timerInterval);
       game.timerRunning=false;
       save();
     }
-
   },1000);
 }
 
 function updateTimer(s){
-  timer.textContent =
+  timer.textContent=
     String(Math.floor(s/60)).padStart(2,"0")+":"+
     String(s%60).padStart(2,"0");
 }
 
 // ===== RESET =====
 function resetGame(){
-
   clearInterval(timerInterval);
   timerBar.style.display="none";
 
-  game.players.length = 0;
-  game.timeLeft = 0;
-  game.timerRunning = false;
+  game.players.length=0;
+  game.timeLeft=0;        // ⭐ Timer stoppen
+  game.timerRunning=false;
 
   save();
   render();
 }
 
-// ===== CATCH + STREAK =====
+// ===== CATCH LOGIK + STREAK =====
 function toggle(i){
-
   const target=game.players[i];
 
   target.caught=!target.caught;
@@ -182,13 +162,11 @@ function toggle(i){
     if(cop) cop.streak=(cop.streak||0)+1;
   }
 
-  save();
-  render();
+  save(); render();
 }
 
 // ===== RENDER =====
 function render(){
-
   players.innerHTML="";
 
   game.players.forEach((p,i)=>{
@@ -196,21 +174,16 @@ function render(){
     let status="";
 
     if(p.role==="polizist"){
-      status=`
-        <span class="badge" style="border:2px solid var(--blue);color:var(--blue);background:white;">
+      status=`<span class="badge" style="border:2px solid var(--blue);color:var(--blue);background:white;">
         🎯 Streak: ${p.streak||0}
-        </span>`;
+      </span>`;
     }
 
     if(p.role==="raeuber"){
       status =
         game.role==="polizist"
-        ? `<button class="primary" onclick="toggle(${i})">
-            ${p.caught?"Freilassen":"Fangen"}
-          </button>`
-        : `<span class="badge ${p.caught?"red":"green"}">
-            ${p.caught?"Gefangen":"Frei"}
-          </span>`;
+        ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
+        : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`;
     }
 
     players.innerHTML+=`
@@ -230,7 +203,6 @@ function render(){
   if(game.role==="admin") showAdmin();
 }
 
-// ===== INIT =====
 if(game.role){
   loginBtn.style.display="none";
   logoutBtn.style.display="inline-block";
@@ -238,7 +210,25 @@ if(game.role){
 
 render();
 
+// ⭐ TIMER NACH RELOAD AUTOMATISCH FORTSETZEN
 if(game.timerRunning && game.timeLeft>0){
-  runTimer();
+  let t=game.timeLeft;
+
+  timerBar.style.display="block";
+  updateTimer(t);
+
+  timerInterval=setInterval(()=>{
+    t--;
+    game.timeLeft=t;
+    save();
+
+    updateTimer(t);
+
+    if(t<=0){
+      clearInterval(timerInterval);
+      game.timerRunning=false;
+      save();
+    }
+  },1000);
 }
 </script>
