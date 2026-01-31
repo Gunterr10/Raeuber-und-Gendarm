@@ -270,16 +270,13 @@ function resetGame(){
   clearInterval(timerInterval);
   timerBar.style.display = "none";
 
-  // ⭐ kompletten Spielzustand neu anlegen
-  game = {
-    role: game.role,   // eingeloggt bleiben
-    user: game.user,
-    players: []       // ALLE SPIELER LÖSCHEN
-  };
+  // Spieler komplett löschen
+  game.players.length = 0;
 
   save();
   render();
 }
+
 
 // ===== CATCH LOGIK + STREAK =====
 function toggle(i){
