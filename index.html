@@ -264,18 +264,18 @@ function updateTimer(s){
     String(s%60).padStart(2,"0");
 }
 
- // ===== RESET =====
+// ===== RESET =====
 function resetGame(){
 
-  // Timer stoppen
   clearInterval(timerInterval);
-  timerBar.style.display="none";
+  timerBar.style.display = "none";
 
-  // Spieler zurücksetzen
-  game.players.forEach(p=>{
-    p.caught = false;
-    p.streak = 0;
-  });
+  // ⭐ kompletten Spielzustand neu anlegen
+  game = {
+    role: game.role,   // eingeloggt bleiben
+    user: game.user,
+    players: []       // ALLE SPIELER LÖSCHEN
+  };
 
   save();
   render();
