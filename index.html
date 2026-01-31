@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Räuber & Gendarm</title>
 
 <style>
@@ -23,7 +23,6 @@ body{
   color:var(--dark);
 }
 
-/* ===== HEADER ===== */
 header{
   background:linear-gradient(90deg,var(--blue),#3b82f6);
   color:white;
@@ -54,7 +53,7 @@ main{max-width:1000px;margin:auto;padding:16px}
   box-shadow:0 6px 20px rgba(0,0,0,.08);
 }
 
-/* ===== SPIELER ===== */
+/* CARDS */
 .players-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
@@ -83,7 +82,7 @@ main{max-width:1000px;margin:auto;padding:16px}
 .badge.red{background:var(--red);color:white}
 .badge.green{background:var(--green);color:white}
 
-/* ===== LOGIN ===== */
+/* LOGIN */
 #popup{
   position:fixed;
   inset:0;
@@ -93,12 +92,17 @@ main{max-width:1000px;margin:auto;padding:16px}
   justify-content:center;
 }
 
-#popup .panel{
+#popup .panel{max-width:360px;width:100%}
+
+input,select{
   width:100%;
-  max-width:360px;
+  padding:10px;
+  margin:6px 0 12px;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
 
-/* ===== TIMER ===== */
+/* TIMER */
 #timerBar{
   display:none;
   text-align:center;
@@ -107,9 +111,7 @@ main{max-width:1000px;margin:auto;padding:16px}
   background:white;
 }
 
-#timer{
-  font-size:28px;
-}
+#timer{font-size:26px}
 </style>
 </head>
 
@@ -123,10 +125,8 @@ main{max-width:1000px;margin:auto;padding:16px}
   </div>
 </header>
 
-<!-- TIMER -->
 <div id="timerBar">
   ⏱️ Zeit: <span id="timer">10:00</span>
-  <button class="primary" onclick="toggleFullscreen()">🔳 Vollbild</button>
 </div>
 
 <main>
@@ -142,7 +142,7 @@ main{max-width:1000px;margin:auto;padding:16px}
 <div id="popup"><div class="panel"></div></div>
 
 <script>
-/* ========= DOM ========= */
+// ===== DOM FIX (wichtig für Login!) =====
 const loginBtn=document.getElementById("loginBtn");
 const logoutBtn=document.getElementById("logoutBtn");
 const popup=document.getElementById("popup");
@@ -152,7 +152,7 @@ const policePanel=document.getElementById("policePanel");
 const timerBar=document.getElementById("timerBar");
 const timer=document.getElementById("timer");
 
-/* ========= STATE ========= */
+// ===== STATE =====
 const ADMIN_PASS="1234";
 let timerInterval=null;
 
@@ -164,7 +164,7 @@ let game=JSON.parse(localStorage.getItem("game"))||{
 
 function save(){localStorage.setItem("game",JSON.stringify(game));}
 
-/* ========= LOGIN ========= */
+// ===== LOGIN =====
 loginBtn.onclick=showLogin;
 logoutBtn.onclick=logout;
 
@@ -183,7 +183,7 @@ function showLogin(){
 }
 
 function updateLoginFields(){
-  loginFields.innerHTML=
+  loginFields.innerHTML =
     loginRole.value==="admin"
     ? `<input id="loginPass" type="password" placeholder="Admin Passwort">`
     : `<input id="loginName" placeholder="Name">
@@ -194,12 +194,11 @@ function login(){
   if(loginRole.value==="admin"){
     if(loginPass.value!==ADMIN_PASS) return alert("Falsches Passwort");
     game.role="admin"; game.user="Admin";
-  }else{
+  } else {
     const p=game.players.find(p=>p.role==="polizist"&&p.name===loginName.value&&p.password===loginPass.value);
     if(!p) return alert("Falsch");
     game.role="polizist"; game.user=p.name;
   }
-
   popup.style.display="none";
   loginBtn.style.display="none";
   logoutBtn.style.display="inline-block";
@@ -210,10 +209,10 @@ function logout(){
   game.role=null; game.user=null;
   loginBtn.style.display="inline-block";
   logoutBtn.style.display="none";
-  render();
+  save(); render();
 }
 
-/* ========= ADMIN ========= */
+// ===== ADMIN =====
 function showAdmin(){
   adminPanel.style.display="block";
   adminPanel.innerHTML=`
@@ -226,7 +225,6 @@ function showAdmin(){
     </select>
     <button class="success" onclick="addPlayer()">Spieler hinzufügen</button>
     <button class="primary" onclick="startTimer()">⏱️ Timer starten</button>
-    <button class="danger" onclick="resetGame()">Spiel zurücksetzen</button>
   `;
 }
 
@@ -238,21 +236,13 @@ function addPlayer(){
     password:playerPass.value,
     role:playerRole.value,
     caught:false,
-    streak:0
+    streak:0   // ⭐ Kill-Streak
   });
 
   save(); render();
 }
 
-function resetGame(){
-  if(!confirm("Spiel wirklich zurücksetzen?")) return;
-  game.players=[];
-  timerBar.style.display="none";
-  clearInterval(timerInterval);
-  save(); render();
-}
-
-/* ========= TIMER ========= */
+// ===== TIMER =====
 function startTimer(){
   let t=600;
   timerBar.style.display="block";
@@ -272,42 +262,37 @@ function updateTimer(s){
     String(s%60).padStart(2,"0");
 }
 
-function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    timerBar.requestFullscreen();
-  }else{
-    document.exitFullscreen();
-  }
-}
-
-/* ========= GAME ========= */
+// ===== CATCH LOGIK + STREAK =====
 function toggle(i){
   const target=game.players[i];
+
   target.caught=!target.caught;
 
+  // ⭐ streak erhöhen wenn gefangen
   if(target.caught && game.role==="polizist"){
     const cop=game.players.find(p=>p.name===game.user);
-    if(cop) cop.streak++;
+    if(cop) cop.streak=(cop.streak||0)+1;
   }
 
   save(); render();
 }
 
-/* ========= RENDER ========= */
+// ===== RENDER =====
 function render(){
   players.innerHTML="";
 
   game.players.forEach((p,i)=>{
-    let content="";
+
+    let status="";
 
     if(p.role==="polizist"){
-      content=`<span class="badge" style="border:2px solid var(--blue);color:var(--blue);background:white;">
-        🎯 Streak: ${p.streak}
+      status=`<span class="badge" style="border:2px solid var(--blue);color:var(--blue);background:white;">
+        🎯 Streak: ${p.streak||0}
       </span>`;
     }
 
     if(p.role==="raeuber"){
-      content =
+      status =
         game.role==="polizist"
         ? `<button class="primary" onclick="toggle(${i})">${p.caught?"Freilassen":"Fangen"}</button>`
         : `<span class="badge ${p.caught?"red":"green"}">${p.caught?"Gefangen":"Frei"}</span>`;
@@ -316,13 +301,17 @@ function render(){
     players.innerHTML+=`
       <div class="player-card ${p.role}">
         <h4>${p.name}</h4>
+        <div class="label">Team</div>
+        <div class="value">${p.role}</div>
         <div class="label">${p.role==="polizist"?"Kills":"Status"}</div>
-        ${content}
+        ${status}
       </div>
     `;
   });
 
   adminPanel.style.display="none";
+  policePanel.style.display="none";
+
   if(game.role==="admin") showAdmin();
 }
 
