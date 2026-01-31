@@ -223,8 +223,10 @@ function showAdmin(){
       <option value="raeuber">Räuber</option>
       <option value="polizist">Polizist</option>
     </select>
-    <button class="success" onclick="addPlayer()">Spieler hinzufügen</button>
-    <button class="primary" onclick="startTimer()">⏱️ Timer starten</button>
+   <button class="success" onclick="addPlayer()">Spieler hinzufügen</button>
+<button class="primary" onclick="startTimer()">⏱️ Timer starten</button>
+<button class="danger" onclick="resetGame()">🔄 Reset</button>
+
   `;
 }
 
@@ -260,6 +262,22 @@ function updateTimer(s){
   timer.textContent=
     String(Math.floor(s/60)).padStart(2,"0")+":"+
     String(s%60).padStart(2,"0");
+}
+
+  // ===== RESET =====
+function resetGame(){
+  if(!confirm("Spiel wirklich zurücksetzen?")) return;
+
+  game.players.forEach(p=>{
+    p.caught=false;
+    p.streak=0;
+  });
+
+  timerBar.style.display="none";
+  clearInterval(timerInterval);
+
+  save();
+  render();
 }
 
 // ===== CATCH LOGIK + STREAK =====
