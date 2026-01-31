@@ -184,7 +184,12 @@ function login(){
     game.role="admin";
     game.user="Admin";
   } else {
-    const p=game.players.find(x=>x.name===name.value && x.password===pass.value);
+    const p=game.players.find(x =>
+  x.role==="polizist" &&
+  x.name===name.value &&
+  x.password===pass.value
+);
+
     if(!p) return alert("Falsch");
     game.role="polizist";
     game.user=p.name;
